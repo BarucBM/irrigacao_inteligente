@@ -17,7 +17,7 @@ Um protótipo de sistema de irrigação automático baseado em IoT que utiliza u
 
 ## 📡 Comunicação e Protocolos
 ### **MQTT**
-- **Broker**: `broker.hivemq.com:1883` (público e sem autenticação).
+- **Broker**: `mqtt-dashboard.com:8884` (público e sem autenticação).
 - **Tópicos**:
   - `irrigacao/umidade`: Publica o valor analógico lido do potenciômetro (0–4095).
   - `irrigacao/status`: Notifica o estado do LED (`LIGADA` ou `DESLIGADA`).
