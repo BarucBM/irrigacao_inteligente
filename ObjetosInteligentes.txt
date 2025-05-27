@@ -1,0 +1,64 @@
+#include <WiFi.h>  
+#include <PubSubClient.h>  
+
+// Configurações Wi-Fi (Wokwi)  
+const char* SSID = "Wokwi-GUEST";  // Rede simulada  
+const char* PASSWORD = "";  
+
+// Configurações MQTT  
+const char* MQTT_BROKER = "broker.hivemq.com";  
+const int MQTT_PORT = 1883;  
+
+// Pinos  
+#define SENSOR 4  // GPIO4 (ADC1_CH4)  
+#define RELE 5     // GPIO5  
+
+WiFiClient espClient;  
+PubSubClient client(espClient);  
+
+void setup() {  
+  pinMode(RELE, OUTPUT);  
+  Serial.begin(115200);  
+  WiFi.begin(SSID, PASSWORD);  
+
+  while (WiFi.status() != WL_CONNECTED) {  
+    delay(100);  
+    Serial.print(".");  
+  }  
+
+  client.setServer(MQTT_BROKER, MQTT_PORT);  
+}  
+
+void reconnectMQTT() {  
+  while (!client.connected()) {  
+    if (client.connect("ESP32S2-Wokwi")) {  
+      Serial.println("Conectado ao MQTT!");  
+    } else {  
+      delay(5000);  
+    }  
+  }  
+}  
+
+void loop() {  
+  if (!client.connected()) reconnectMQTT();  
+  client.loop();  
+
+  int umidade = analogRead(SENSOR);  
+  Serial.print("Umidade: ");  
+  Serial.println(umidade);  
+
+  // Publica no MQTT  
+  client.publish("irrigacao/umidade", String(umidade).c_str());  
+
+  if (umidade > 2500) {  // Limiar para solo seco  
+    digitalWrite(RELE, HIGH);  
+    client.publish("irrigacao/status", "LIGADA");  
+    Serial.println("Bomba ligada!");  
+  } else {  
+    digitalWrite(RELE, LOW);  
+    client.publish("irrigacao/status", "DESLIGADA");  
+    Serial.println("Bomba desligada.");  
+  }  
+
+  delay(2000);  
+}  
